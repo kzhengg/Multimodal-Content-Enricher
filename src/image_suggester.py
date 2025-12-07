@@ -253,10 +253,11 @@ Return ONLY the JSON object with the slots array, no additional text or markdown
             raise ValueError("Response missing 'slots' key")
         
         # Optional: Validate each slot has required fields
-        required_fields = {"section_id", "position", "image_type", "search_query", "alt_text_hint", "caption_hint", "priority", "recommended_dimensions"}
+        required_fields = {"section_id", "position", "image_type", "search_query", "alt_text_hint", "priority", "recommended_dimensions"}
         for i, slot in enumerate(slots_data["slots"]):
             missing = required_fields - set(slot.keys())
             if missing:
+                print(slot)
                 raise ValueError(f"Slot {i} missing fields: {missing}")
         
         if output_path is not None:
@@ -269,7 +270,7 @@ Return ONLY the JSON object with the slots array, no additional text or markdown
     except json.JSONDecodeError as je:
         raise ValueError(
             f"Failed to parse JSON from Grok response: {je}. "
-            f"Response preview: {response_text[:500] if response_text else 'No response'}"
+            f"Response: {response_text if response_text else 'No response'}"
         )
     except Exception as e:
         error_str = str(e)
