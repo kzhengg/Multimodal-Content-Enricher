@@ -539,7 +539,7 @@ def main(html_file_path):
     output_dir = Path("data/output")
     output_dir.mkdir(parents=True, exist_ok=True)
     input_stem = Path(html_file_path).stem
-    output_html_path = output_dir / f"{input_stem}_enhanced.html"
+    output_html_path = output_dir / f"{input_stem}.html"
     output_html_path.write_text(enhanced_html, encoding="utf-8")
     
     print(f"\nDone! Enhanced article saved to {output_html_path}")
