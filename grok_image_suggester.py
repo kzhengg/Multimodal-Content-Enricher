@@ -27,14 +27,7 @@ import httpx
 from openai import OpenAI
 from dotenv import load_dotenv
 
-
-
-
-
-
-
-
-def format_article_for_grok(article: Dict[str, Any]) -> str:
+def _format_article_for_grok(article: Dict[str, Any]) -> str:
     """
     Format article structure as text for Grok analysis.
     Includes section IDs, headings, and paragraph IDs for reference.
@@ -110,7 +103,7 @@ def generate_image_slots(
     except ValueError as e:
         raise ValueError(f"Article validation failed: {e}")
     
-    article_text = format_article_for_grok(article)
+    article_text = _format_article_for_grok(article)
     
     # Truncate for API limits
     max_chars = 50000

@@ -15,6 +15,7 @@ and saves all HTML files to the 'pages' folder. Each file is named based on the 
 
 import argparse
 import sys
+
 import requests
 
 try:
@@ -24,13 +25,13 @@ except ImportError:
     BeautifulSoup = None
     BS_AVAILABLE = False
 
+import concurrent.futures
 import os
 from pathlib import Path
 from urllib.parse import urlparse
-import concurrent.futures
 
 
-def fetch_page(url: str) -> str:
+def _fetch_page(url: str) -> str:
     """Fetch the full HTML content of a page."""
     headers = {
         "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -51,7 +52,7 @@ def scrape_single(url: str, base_dir: Path, filename: str = None, do_inline: boo
     
     print(f"Scraping: {url}", file=sys.stderr)
     
-    html = fetch_page(url)
+    html = _fetch_page(url)
     if not html:
         print(f"Failed to fetch content for {url}", file=sys.stderr)
         return None
