@@ -28,3 +28,6 @@ Use `main.py` for the full automated pipeline on scraped HTML:
 - Images use top search result; customize `main.py` for better selection.
 - Preserves original styles; inserts <img> with alt/caption; supports recommended_dimensions for sizes (future: add width/height attrs).
 
+
+**Demo here**:
+- https://youtu.be/W2WxMBvier4
