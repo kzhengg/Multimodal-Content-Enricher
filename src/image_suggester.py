@@ -53,8 +53,9 @@ def _format_article_for_grok(article: Dict[str, Any]) -> str:
 
 
 def generate_image_slots(
-    input_path: str,
-    output_path: str = "image_slots.json",
+    input_path: Optional[str] = None,
+    article: Optional[Dict[str, Any]] = None,
+    output_path: Optional[str] = "image_slots.json",
     api_key: Optional[str] = None,
     model: str = "grok-4-1-fast-non-reasoning",
     max_slots: int = 10
@@ -65,11 +66,12 @@ def generate_image_slots(
     Loads the JSON file, formats for Grok, gets suggestions, saves to output JSON, returns data.
     
     Args:
-        input_path: Path to article JSON file (format: {"title": str, "sections": [{"id": str, "level": int, "heading": str, "paragraphs": [{"id": str, "text": str}]}]})
-        output_path: Path to save {"slots": [...]} JSON
-        api_key: Optional XAI API key; loads from env if None
-        model: Grok model name
-        max_slots: Max slots to suggest (Grok may suggest fewer)
+        input_path: Optional[str] = None - Path to article JSON file. Mutually exclusive with 'article'.
+        article: Optional[Dict[str, Any]] = None - Article dict to use directly. Mutually exclusive with 'input_path'. Format: {"title": str, "sections": [{"id": str, "level": int, "heading": str, "paragraphs": [{"id": str, "text": str}]}]}
+        output_path: Optional[str] = "image_slots.json" - Path to save slots JSON. If None, skips saving to file.
+        api_key: Optional[str] = None - XAI API key; loads from env if None
+        model: str = "grok-4-1-fast-non-reasoning" - Grok model name
+        max_slots: int = 10 - Max slots to suggest (Grok may suggest fewer)
     
     Returns:
         {"slots": list of slot dicts}
@@ -87,21 +89,33 @@ def generate_image_slots(
             "or pass api_key parameter."
         )
     
-    input_path_obj = Path(input_path)
-    if not input_path_obj.exists():
-        raise FileNotFoundError(f"Input file not found: {input_path}")
+    # Load or validate article data
+    if input_path is not None and article is not None:
+        raise ValueError("Provide only one of 'input_path' or 'article', not both.")
     
-    content = input_path_obj.read_text(encoding="utf-8")
-    
-    try:
-        article = json.loads(content)
-        # Validate basic structure
+    if article is None:
+        if input_path is None:
+            raise ValueError("Must provide either 'input_path' or 'article' parameter")
+        
+        input_path_obj = Path(input_path)
+        if not input_path_obj.exists():
+            raise FileNotFoundError(f"Input file not found: {input_path}")
+        
+        content = input_path_obj.read_text(encoding="utf-8")
+        
+        try:
+            article = json.loads(content)
+            # Validate basic structure
+            if "title" not in article or "sections" not in article:
+                raise ValueError("JSON missing required 'title' or 'sections' keys")
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Invalid JSON in {input_path}: {e}")
+        except ValueError as e:
+            raise ValueError(f"Article validation failed: {e}")
+    else:
+        # Validate provided article dict
         if "title" not in article or "sections" not in article:
-            raise ValueError("JSON missing required 'title' or 'sections' keys")
-    except json.JSONDecodeError as e:
-        raise ValueError(f"Invalid JSON in {input_path}: {e}")
-    except ValueError as e:
-        raise ValueError(f"Article validation failed: {e}")
+            raise ValueError("Provided 'article' missing required 'title' or 'sections' keys")
     
     article_text = _format_article_for_grok(article)
     
@@ -212,8 +226,10 @@ Return ONLY the JSON object with the slots array, no additional text or markdown
         if "slots" not in slots_data:
             raise ValueError("Response missing 'slots' key")
         
-        output_path_obj = Path(output_path)
-        output_path_obj.write_text(json.dumps(slots_data, indent=2), encoding="utf-8")
+        if output_path is not None:
+            output_path_obj = Path(output_path)
+            output_path_obj.parent.mkdir(parents=True, exist_ok=True)
+            output_path_obj.write_text(json.dumps(slots_data, indent=2), encoding="utf-8")
         
         return slots_data
         

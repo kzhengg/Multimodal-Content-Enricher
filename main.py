@@ -12,10 +12,10 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from article_to_json import html_to_article_view, inject_images_into_html
-from grok_image_suggester import generate_image_slots
+from src.article_processor import html_to_article_view, inject_images_into_html
+from src.image_suggester import generate_image_slots
 # Import local modules
-from image_search import search_images
+from src.image_searcher import search_images
 
 
 def build_image_slots_from_specs(slot_specs):
@@ -100,9 +100,10 @@ def main(html_file_path):
     enhanced_html = inject_images_into_html(mutated_html, final_slots)
     
     # Create output directory and save final file
-    output_dir = Path("output")
-    output_dir.mkdir(exist_ok=True)
-    output_html_path = output_dir / "enhanced_article.html"
+    output_dir = Path("data/enhanced")
+    output_dir.mkdir(parents=True, exist_ok=True)
+    input_stem = Path(html_file_path).stem
+    output_html_path = output_dir / f"{input_stem}_enhanced.html"
     output_html_path.write_text(enhanced_html, encoding="utf-8")
     
     print(f"\nDone! Enhanced article saved to {output_html_path}")
@@ -111,5 +112,6 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         main(sys.argv[1])
     else:
-        print("Usage: python main.py <html_file_path>")
+        print("Usage: python main.py <path_to_html_file>")
+        print("Example: python main.py data/pages/Acquisition_of_Twitter_by_Elon_Musk.html")
         sys.exit(1)
