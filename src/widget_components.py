@@ -18,7 +18,10 @@ def render_timeline(events: List[Dict[str, str]]) -> str:
 
     html = '''
 <div class="widget-timeline mb-4 p-4 rounded-xl bg-neutral-50 border border-neutral-200 dark:bg-neutral-900 dark:border-neutral-800">
-  <h3 class="text-base font-semibold mb-3 text-neutral-900 dark:text-neutral-50">Timeline</h3>
+  <h3 class="text-base font-semibold mb-3 text-neutral-900 dark:text-neutral-50 flex items-center gap-2">
+    <svg class="w-4 h-4 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+    Timeline
+  </h3>
   <div class="space-y-2">
 '''
 
@@ -41,29 +44,43 @@ def render_timeline(events: List[Dict[str, str]]) -> str:
     return html
 
 
-def render_key_facts(facts: List[str]) -> str:
+def render_key_facts(facts: List[Dict[str, Any]]) -> str:
     """
-    Render a sidebar key facts panel.
-    facts: ["Fact 1...", "Fact 2..."]
+    Render an infobox-style key facts panel with label-value pairs.
+    facts: [{"label": "Born", "values": ["June 28, 1971", "South Africa"]}, {"label": "Citizenship", "values": ["United States", "Canada"]}, ...]
     """
     if not facts:
         return ""
 
-    facts_html = ""
-    for fact in facts[:10]:  # Limit
-        facts_html += (
-            '<li class="flex items-start gap-2 text-neutral-700 dark:text-neutral-300">'
-            '<span class="shrink-0 text-sky-500 dark:text-sky-400">•</span>'
-            f'<span class="leading-snug">{fact}</span>'
-            '</li>'
-        )
+    rows_html = ""
+    for fact in facts[:12]:  # Limit to 12 rows
+        label = fact.get("label", "")
+        values = fact.get("values", [])
+        
+        # Handle both list and string values for backwards compatibility
+        if isinstance(values, str):
+            values = [values]
+        
+        # Join values with line breaks
+        value_html = "<br>".join(values) if values else ""
+        
+        rows_html += f'''
+    <tr>
+      <th class="py-2 pl-4 pr-4 text-left align-top text-sm font-semibold text-neutral-900 dark:text-neutral-100 whitespace-nowrap">{label}</th>
+      <td class="py-2 pr-4 text-sm text-neutral-500 dark:text-neutral-400 leading-relaxed">{value_html}</td>
+    </tr>'''
 
     html = f'''
-<aside class="widget-key-facts w-full md:w-1/3 float-right mb-4 p-4 rounded-xl bg-neutral-50 border border-neutral-200 dark:bg-neutral-900 dark:border-neutral-800">
-  <h3 class="text-base font-semibold mb-2 text-neutral-900 dark:text-neutral-50">Key Facts</h3>
-  <ul class="space-y-1.5 text-xs">
-    {facts_html}
-  </ul>
+<aside class="widget-key-facts w-full md:w-80 mb-4 rounded-xl bg-neutral-50 border border-neutral-200 dark:bg-neutral-900 dark:border-neutral-800 overflow-hidden">
+  <h3 class="text-base font-semibold px-4 py-3 text-neutral-900 dark:text-neutral-50 flex items-center gap-2 border-b border-neutral-200 dark:border-neutral-700">
+    <svg class="w-4 h-4 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+    Key Facts
+  </h3>
+  <table class="w-full">
+    <tbody>
+      {rows_html}
+    </tbody>
+  </table>
 </aside>
 '''
     return html
@@ -123,7 +140,10 @@ def render_key_definitions(definitions: List[Dict[str, str]]) -> str:
 
     html = f'''
 <div class="widget-key-definitions mb-4 p-4 rounded-xl bg-neutral-50 border border-neutral-200 dark:bg-neutral-900 dark:border-neutral-800">
-  <h3 class="text-base font-semibold mb-2 text-neutral-900 dark:text-neutral-50">Key Terms</h3>
+  <h3 class="text-base font-semibold mb-2 text-neutral-900 dark:text-neutral-50 flex items-center gap-2">
+    <svg class="w-4 h-4 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+    Key Terms
+  </h3>
   <div>
     {defs_html}
   </div>
@@ -140,7 +160,7 @@ WIDGET_TYPES = {
     },
     "key_facts": {
         "renderer": render_key_facts,
-        "data_schema": "List of strings: key facts, stats, or highlights (5-10 bullet points, concise).",
+        "data_schema": "List of dicts: [{'label': str, 'values': List[str]}, ...] Extract 6-10 biographical or summary facts. Each value should be SHORT and CONCISE (2-8 words max per line). Examples: {'label': 'Born', 'values': ['June 28, 1971', 'Pretoria, South Africa']}, {'label': 'Citizenship', 'values': ['South Africa', 'Canada', 'United States (since 2002)']}, {'label': 'Occupations', 'values': ['CEO of Tesla', 'Founder of SpaceX', 'CEO of X Corp']}, {'label': 'Education', 'values': ['University of Pennsylvania (BA)', 'Wharton School (BS)']}. Keep each line brief - just the essential fact. Include: Born, Citizenship, Education, Occupation(s), Spouse(s), Children, Parents, etc.",
     },
     "stat_cards": {
         "renderer": render_stat_cards,
