@@ -55,9 +55,6 @@ def build_image_slots_from_specs(slot_specs):
 def main(html_file_path):
     load_dotenv()
     
-    output_dir = Path("output")
-    output_dir.mkdir(exist_ok=True)
-    
     # Step 1: Read HTML
     print(f"\n1. Reading article from {html_file_path}...")
     try:
@@ -79,14 +76,11 @@ def main(html_file_path):
         print("Please set XAI_API_KEY in .env file.")
         return
 
-    # Save article_view temporarily for Grok API
-    article_view_path = output_dir / "article_view.json"
-    article_view_path.write_text(json.dumps(article_view, indent=2), encoding="utf-8")
-    
+    # Generate image slots using article_view in memory
     try:
         slots_data = generate_image_slots(
-            input_path=str(article_view_path),
-            output_path=str(output_dir / "image_slots_suggestions.json")
+            article=article_view,
+            output_path=None  # Avoid writing intermediate file
         )
     except Exception as e:
         print(f"Error generating slots: {e}")
@@ -105,6 +99,9 @@ def main(html_file_path):
     print("\n5. Injecting images into HTML...")
     enhanced_html = inject_images_into_html(mutated_html, final_slots)
     
+    # Create output directory and save final file
+    output_dir = Path("output")
+    output_dir.mkdir(exist_ok=True)
     output_html_path = output_dir / "enhanced_article.html"
     output_html_path.write_text(enhanced_html, encoding="utf-8")
     
