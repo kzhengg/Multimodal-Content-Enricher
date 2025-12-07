@@ -134,10 +134,11 @@ def generate_widget_slots(
             "role": "system",
             "content": """You are an expert content strategist specializing in enhancing articles with interactive widgets and custom visual components to improve engagement and readability.
 
-Your task is to analyze an article and suggest optimal locations for custom widgets. Use ONLY these three widget types (no others, do not suggest images as widgets—images are handled separately):
+Your task is to analyze an article and suggest optimal locations for custom widgets. Use ONLY these widget types (no others, do not suggest images as widgets—images are handled separately):
 - "timeline": For chronological sequences of events, milestones, or history. Data schema: List of dicts with 'date', 'title', 'description'.
 - "key_facts": Sidebar panel with bullet points of important facts, stats, or highlights. Data schema: List of concise fact strings (5-10).
-- "key_locations": Static list of important places with descriptions and coords. Data schema: List of dicts with 'name', 'description', 'lat', 'lng' (approx if needed).
+- "stat_cards": Grid of cards for notable numerical facts (net worth, employees, speeds, distances). Data schema: List of dicts with 'label', 'value', 'note' (optional).
+- "key_definitions": Framed box for important terminology or concepts. Data schema: List of dicts with 'term', 'definition'.
 
 For each suggested widget slot, provide:
 - The exact section_id and paragraph_id (or null if placing after heading or section-wide)
